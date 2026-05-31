@@ -53,12 +53,15 @@ class LeadService:
 
         # Score new lead based on car details — non-fatal
         created = await self.get_by_id(lead.id)
+        assert created is not None
         try:
             from app.ai.scorer import score_lead
 
             score, priority = await score_lead(created)
             await self.update_ai_fields(lead.id, ai_score=score, priority=priority)
-            created = await self.get_by_id(lead.id)
+            refreshed = await self.get_by_id(lead.id)
+            if refreshed is not None:
+                created = refreshed
         except Exception as exc:
             logger.warning("lead_initial_scoring_failed", lead_id=lead.id, error=str(exc))
 

@@ -14,6 +14,7 @@ Every log line is emitted as:
 """
 
 import logging
+from typing import Any
 
 import structlog
 
@@ -30,7 +31,7 @@ def _uppercase_level(logger, method, event_dict: dict) -> dict:
 
 
 # Processors shared between structlog and the stdlib foreign-log chain
-_shared_processors = [
+_shared_processors: list[Any] = [
     structlog.contextvars.merge_contextvars,
     structlog.stdlib.add_log_level,
     _uppercase_level,

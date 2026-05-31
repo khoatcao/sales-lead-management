@@ -85,17 +85,20 @@ async def _enrich_note(note_text: str, car: Car | None, span) -> EnrichmentResul
         ],
     )
 
-    tool_input = json.loads(response.choices[0].message.tool_calls[0].function.arguments)
-    usage = response.usage
-    span.set_attribute("ai.input_tokens", usage.prompt_tokens)
-    span.set_attribute("ai.output_tokens", usage.completion_tokens)
+    tool_calls = response.choices[0].message.tool_calls
+    assert tool_calls is not None, "OpenAI returned no tool calls"
+    tool_input = json.loads(tool_calls[0].function.arguments)  # type: ignore[union-attr]
     span.set_attribute("ai.result.type", tool_input["type"])
     span.set_attribute("ai.result.sentiment", tool_input["sentiment"])
-    logger.info(
-        "ai_enrichment_complete",
-        input_tokens=usage.prompt_tokens,
-        output_tokens=usage.completion_tokens,
-        type=tool_input["type"],
-        sentiment=tool_input["sentiment"],
-    )
+    usage = response.usage
+    if usage:
+        span.set_attribute("ai.input_tokens", usage.prompt_tokens)
+        span.set_attribute("ai.output_tokens", usage.completion_tokens)
+        logger.info(
+            "ai_enrichment_complete",
+            input_tokens=usage.prompt_tokens,
+            output_tokens=usage.completion_tokens,
+            type=tool_input["type"],
+            sentiment=tool_input["sentiment"],
+        )
     return EnrichmentResult(**tool_input)

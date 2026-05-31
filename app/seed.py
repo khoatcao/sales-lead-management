@@ -8,6 +8,7 @@ Usage:
 """
 
 import asyncio
+from typing import Any
 
 import structlog
 from passlib.context import CryptContext
@@ -35,7 +36,7 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 # Sample data
 # ---------------------------------------------------------------------------
 
-USERS = [
+USERS: list[dict[str, Any]] = [
     {
         "name": "Alice Johnson",
         "email": "alice@dealer.com",
@@ -56,7 +57,7 @@ USERS = [
     },
 ]
 
-LEADS = [
+LEADS: list[dict[str, Any]] = [
     {
         "seller_name": "James Brown",
         "seller_email": "james.brown@example.com",

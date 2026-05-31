@@ -48,10 +48,10 @@ class NoteService:
         await self._refresh_lead_score(lead)
 
         # Return note with author loaded
-        result = await self.db.execute(
+        note_result = await self.db.execute(
             select(LeadNote).options(selectinload(LeadNote.author)).where(LeadNote.id == note.id)
         )
-        return result.scalar_one()
+        return note_result.scalar_one()
 
     async def _refresh_lead_score(self, lead: Lead) -> None:
         try:

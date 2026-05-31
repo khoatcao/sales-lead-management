@@ -15,4 +15,4 @@ class Settings(BaseSettings):
     otel_endpoint: str = "http://localhost:4317"
 
 
-settings = Settings()
+settings = Settings()  # type: ignore[call-arg]

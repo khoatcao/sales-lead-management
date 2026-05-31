@@ -44,11 +44,12 @@ async def summarize_lead(lead: Lead) -> str:
         ],
     )
 
-    summary = response.choices[0].message.content
+    summary = response.choices[0].message.content or ""
     usage = response.usage
-    logger.info(
-        "ai_summarization_complete",
-        lead_id=lead.id,
-        input_tokens=usage.prompt_tokens,
-    )
+    if usage:
+        logger.info(
+            "ai_summarization_complete",
+            lead_id=lead.id,
+            input_tokens=usage.prompt_tokens,
+        )
     return summary
