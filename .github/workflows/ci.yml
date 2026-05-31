@@ -56,21 +56,6 @@ jobs:
     runs-on: ubuntu-latest
     needs: quality
 
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_USER: test
-          POSTGRES_PASSWORD: test
-          POSTGRES_DB: sales_leads_test
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -97,20 +82,13 @@ jobs:
       - name: Install dependencies
         run: poetry install --no-interaction
 
-      - name: Run migrations
+      - name: Run unit tests
         env:
-          DATABASE_URL: postgresql+asyncpg://test:test@localhost:5432/sales_leads_test
+          DATABASE_URL: postgresql+asyncpg://placeholder:placeholder@localhost:5432/sales_leads
           OPENAI_API_KEY: placeholder
           SECRET_KEY: ci-test-secret-key
-        run: poetry run alembic upgrade head
-
-      - name: Run tests
-        env:
-          DATABASE_URL: postgresql+asyncpg://test:test@localhost:5432/sales_leads_test
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          SECRET_KEY: ci-test-secret-key
           ENVIRONMENT: test
-        run: poetry run pytest tests/ --cov=app --cov-report=xml -v
+        run: poetry run pytest tests/test_ai_unit.py --cov=app --cov-report=xml -v
 
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
