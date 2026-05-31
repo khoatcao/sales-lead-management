@@ -1,0 +1,78 @@
+[tool.poetry]
+name = "sales-lead-management"
+version = "1.0.0"
+description = "AI-powered sales lead management for automotive dealerships"
+authors = []
+readme = "README.md"
+packages = [{ include = "app" }]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+fastapi = "^0.115.0"
+uvicorn = { version = "^0.30.6", extras = ["standard"] }
+sqlalchemy = "^2.0.36"
+asyncpg = "^0.30.0"
+alembic = "^1.13.3"
+pydantic = { version = "^2.9.2", extras = ["email"] }
+pydantic-settings = "^2.6.1"
+openai = "^1.30.0"
+python-jose = { version = "^3.3.0", extras = ["cryptography"] }
+passlib = { version = "^1.7.4", extras = ["bcrypt"] }
+structlog = "^24.4.0"
+greenlet = "^3.5.1"
+opentelemetry-api = "^1.42.1"
+opentelemetry-sdk = "^1.42.1"
+opentelemetry-instrumentation-fastapi = "^0.63b1"
+opentelemetry-instrumentation-sqlalchemy = "^0.63b1"
+opentelemetry-exporter-otlp-proto-grpc = "^1.42.1"
+bcrypt = ">=3.2.0,<4.0.0"
+
+[tool.poetry.group.dev.dependencies]
+httpx = "^0.27.2"
+pytest = "^8.3.3"
+pytest-asyncio = "^0.24.0"
+pytest-cov = "^5.0.0"
+ruff = "^0.7.1"
+mypy = "^1.13.0"
+flake8 = "^7.3.0"
+black = "^26.5.1"
+isort = "^8.0.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry-core.masonry.api"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+
+[tool.black]
+line-length = 100
+target-version = ["py312"]
+
+[tool.isort]
+profile = "black"
+line_length = 100
+known_first_party = ["app"]
+
+[tool.flake8]
+max-line-length = 100
+extend-ignore = ["E203", "E501", "W503"]
+exclude = [".venv", "alembic"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = false
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "session"
+testpaths = ["tests"]
+
+[tool.coverage.run]
+source = ["app"]
+omit = ["tests/*"]
