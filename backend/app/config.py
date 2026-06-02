@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     environment: str = "development"
     port: int = 8000
     otel_endpoint: str = "http://localhost:4317"
+    cors_origins: str = ""
 
 
 settings = Settings()  # type: ignore[call-arg]
