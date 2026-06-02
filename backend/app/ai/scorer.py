@@ -36,6 +36,18 @@ async def score_lead(lead: Lead) -> tuple[int, PriorityEnum]:
             f"urgency: {lead.car.urgency}\n\n"
         )
 
+    # Build multimodal content — text first, then photo images if available
+    text_content = f"{car_context}{notes_text}Score this lead based on conversion likelihood. If car photos are provided, assess the actual visual condition and factor it into your score."
+
+    content: list = [{"type": "text", "text": text_content}]
+
+    if lead.car and lead.car.photos:
+        for photo in lead.car.photos:
+            content.append({
+                "type": "image_url",
+                "image_url": {"url": photo.url, "detail": "low"},
+            })
+
     response = await client.chat.completions.create(
         model="gpt-4o-mini",
         tools=[
@@ -65,14 +77,7 @@ async def score_lead(lead: Lead) -> tuple[int, PriorityEnum]:
             }
         ],
         tool_choice={"type": "function", "function": {"name": "score_lead"}},
-        messages=[
-            {
-                "role": "user",
-                "content": (
-                    f"{car_context}{notes_text}" "Score this lead based on conversion likelihood."
-                ),
-            }
-        ],
+        messages=[{"role": "user", "content": content}],
     )
 
     tool_calls = response.choices[0].message.tool_calls

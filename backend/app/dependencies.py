@@ -50,3 +50,16 @@ async def get_current_user(
     if not user:
         raise exception
     return user
+
+
+async def require_manager_or_admin(
+    current_user=Depends(get_current_user),
+):
+    from app.models.models import RoleEnum
+
+    if current_user.role not in (RoleEnum.manager, RoleEnum.admin):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Manager or admin access required",
+        )
+    return current_user

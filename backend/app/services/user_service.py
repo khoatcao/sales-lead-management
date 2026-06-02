@@ -36,6 +36,10 @@ class UserService:
         result = await self.db.execute(select(User).where(User.email == email))
         return result.scalar_one_or_none()
 
+    async def list_all(self) -> list[User]:
+        result = await self.db.execute(select(User).order_by(User.name))
+        return list(result.scalars().all())
+
     async def authenticate(self, email: str, password: str) -> str | None:
         user = await self.get_by_email(email)
         if not user or not pwd_context.verify(password, user.password_hash):

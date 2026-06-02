@@ -11,6 +11,9 @@ jobs:
   quality:
     name: Code Quality
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
 
     steps:
       - name: Checkout code
@@ -31,8 +34,8 @@ jobs:
       - name: Cache dependencies
         uses: actions/cache@v4
         with:
-          path: .venv
-          key: venv-${{ runner.os }}-${{ hashFiles('poetry.lock') }}
+          path: backend/.venv
+          key: venv-${{ runner.os }}-${{ hashFiles('backend/poetry.lock') }}
           restore-keys: venv-${{ runner.os }}-
 
       - name: Install dependencies
@@ -55,6 +58,9 @@ jobs:
     name: Tests
     runs-on: ubuntu-latest
     needs: quality
+    defaults:
+      run:
+        working-directory: backend
 
     steps:
       - name: Checkout code
@@ -75,8 +81,8 @@ jobs:
       - name: Cache dependencies
         uses: actions/cache@v4
         with:
-          path: .venv
-          key: venv-${{ runner.os }}-${{ hashFiles('poetry.lock') }}
+          path: backend/.venv
+          key: venv-${{ runner.os }}-${{ hashFiles('backend/poetry.lock') }}
           restore-keys: venv-${{ runner.os }}-
 
       - name: Install dependencies
@@ -95,9 +101,9 @@ jobs:
         if: always()
         with:
           name: coverage-report
-          path: coverage.xml
+          path: backend/coverage.xml
 
-  # ── Job 3: Build ───────────────────────────────────────────────────────────
+  # ── Job 3: Build Docker Image ─────────────────────────────────────────────
   build:
     name: Build Docker Image
     runs-on: ubuntu-latest
@@ -108,4 +114,64 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Build Docker image
-        run: docker build -t sales-lead-management:${{ github.sha }} .
+        run: docker build -t sales-lead-management:${{ github.sha }} ./backend
+
+  # ── Job 4: Frontend Lint ───────────────────────────────────────────────────
+  fe-lint:
+    name: Frontend Lint & Type Check
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: fe
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: fe/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint with ESLint
+        run: npm run lint
+
+      - name: Type check
+        run: npx tsc --noEmit
+
+  # ── Job 5: Frontend Build ──────────────────────────────────────────────────
+  fe-build:
+    name: Frontend Build
+    runs-on: ubuntu-latest
+    needs: fe-lint
+    defaults:
+      run:
+        working-directory: fe
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: fe/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: fe-dist
+          path: fe/dist

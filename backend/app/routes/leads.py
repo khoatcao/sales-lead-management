@@ -34,7 +34,7 @@ async def list_leads(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    leads, total = await LeadService(db).list(page, per_page)
+    leads, total = await LeadService(db).list(page, per_page, current_user)
     return PaginatedResponse(total=total, page=page, per_page=per_page, items=leads)
 
 
@@ -44,9 +44,17 @@ async def get_lead(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    from app.models.models import RoleEnum
+
     lead = await LeadService(db).get_by_id(lead_id)
     if not lead:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Lead not found")
+
+    if (
+        current_user.role == RoleEnum.salesperson
+        and lead.assigned_to != current_user.id
+    ):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
 
     try:
         lead.ai_summary = await summarize_lead(lead)

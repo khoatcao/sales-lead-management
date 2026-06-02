@@ -28,20 +28,28 @@ async def summarize_lead(lead: Lead) -> str:
             f"asking ${lead.car.asking_price}\n"
         )
 
+    # Build multimodal content — text first, then photo images if available
+    text_content = (
+        "Summarize this sales lead in 1-2 sentences. "
+        "Include current status and recommended next action. "
+        "If car photos are provided, mention any visual observations about the car's condition.\n\n"
+        f"{car_context}"
+        f"Activity log:\n{notes_text}"
+    )
+
+    content: list = [{"type": "text", "text": text_content}]
+
+    if lead.car and lead.car.photos:
+        for photo in lead.car.photos:
+            content.append({
+                "type": "image_url",
+                "image_url": {"url": photo.url, "detail": "low"},
+            })
+
     response = await client.chat.completions.create(
         model="gpt-4o-mini",
         max_tokens=150,
-        messages=[
-            {
-                "role": "user",
-                "content": (
-                    "Summarize this sales lead in 1-2 sentences. "
-                    "Include current status and recommended next action.\n\n"
-                    f"{car_context}"
-                    f"Activity log:\n{notes_text}"
-                ),
-            }
-        ],
+        messages=[{"role": "user", "content": content}],
     )
 
     summary = response.choices[0].message.content or ""
