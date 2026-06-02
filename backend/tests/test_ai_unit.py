@@ -333,6 +333,7 @@ class TestSummarizer:
         ) as mock_create:
             await summarize_lead(make_lead(notes=[make_note()]))
 
-        prompt = mock_create.call_args.kwargs["messages"][0]["content"]
+        content = mock_create.call_args.kwargs["messages"][0]["content"]
+        prompt = content[0]["text"] if isinstance(content, list) else content
         assert "BMW" in prompt
         assert "18500" in prompt
