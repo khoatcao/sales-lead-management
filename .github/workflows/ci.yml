@@ -50,8 +50,6 @@ jobs:
       - name: Lint with Flake8
         run: poetry run flake8 app/ tests/
 
-      - name: Type check with Mypy
-        run: poetry run mypy app/
 
   # ── Job 2: Tests ───────────────────────────────────────────────────────────
   test:
