@@ -75,9 +75,11 @@ def setup_telemetry(app, engine) -> None:
     set_logger_provider(logger_provider)
 
     from app.middleware.logging_config import configure_logging
+
     configure_logging()
 
     from opentelemetry.sdk._logs import LoggingHandler
+
     otel_handler = LoggingHandler(level=logging.INFO, logger_provider=logger_provider)
     logging.getLogger().addHandler(otel_handler)
 

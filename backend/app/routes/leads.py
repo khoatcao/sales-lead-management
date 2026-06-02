@@ -50,10 +50,7 @@ async def get_lead(
     if not lead:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Lead not found")
 
-    if (
-        current_user.role == RoleEnum.salesperson
-        and lead.assigned_to != current_user.id
-    ):
+    if current_user.role == RoleEnum.salesperson and lead.assigned_to != current_user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
 
     try:

@@ -41,10 +41,12 @@ async def summarize_lead(lead: Lead) -> str:
 
     if lead.car and lead.car.photos:
         for photo in lead.car.photos:
-            content.append({
-                "type": "image_url",
-                "image_url": {"url": photo.url, "detail": "low"},
-            })
+            content.append(
+                {
+                    "type": "image_url",
+                    "image_url": {"url": photo.url, "detail": "low"},
+                }
+            )
 
     response = await client.chat.completions.create(
         model="gpt-4o-mini",
