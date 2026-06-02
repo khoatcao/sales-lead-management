@@ -3,7 +3,7 @@ name = "sales-lead-management"
 version = "1.0.0"
 description = "AI-powered sales lead management for automotive dealerships"
 authors = []
-readme = "README.md"
+package-mode = false
 packages = [{ include = "app" }]
 
 [tool.poetry.dependencies]
