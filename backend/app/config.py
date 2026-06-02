@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     environment: str = "development"
     port: int = 8000
     otel_endpoint: str = "http://localhost:4317"
+    otel_auth_header: str = ""
     cors_origins: str = ""
 
 
