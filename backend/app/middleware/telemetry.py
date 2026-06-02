@@ -2,6 +2,8 @@ import logging
 
 from opentelemetry import metrics, trace
 from opentelemetry._logs import set_logger_provider
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
 from opentelemetry.sdk._logs import LoggerProvider
 from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
 from opentelemetry.sdk.metrics import MeterProvider
@@ -10,8 +12,6 @@ from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.semconv.resource import ResourceAttributes
-from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
-from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
 
 from app.config import settings
 
@@ -22,9 +22,9 @@ def _build_exporters(auth_header: str, endpoint: str):
     """Return (span_exporter, metric_exporter, log_exporter) for gRPC or HTTP."""
     if auth_header:
         # Grafana Cloud — OTLP HTTP with Basic auth
-        from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
-        from opentelemetry.exporter.otlp.proto.http.metric_exporter import OTLPMetricExporter
         from opentelemetry.exporter.otlp.proto.http._log_exporter import OTLPLogExporter
+        from opentelemetry.exporter.otlp.proto.http.metric_exporter import OTLPMetricExporter
+        from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
 
         headers = {"Authorization": auth_header}
         span_exporter = OTLPSpanExporter(endpoint=f"{endpoint}/v1/traces", headers=headers)
@@ -32,9 +32,9 @@ def _build_exporters(auth_header: str, endpoint: str):
         log_exporter = OTLPLogExporter(endpoint=f"{endpoint}/v1/logs", headers=headers)
     else:
         # Local OTel Collector — gRPC insecure
-        from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
-        from opentelemetry.exporter.otlp.proto.grpc.metric_exporter import OTLPMetricExporter
         from opentelemetry.exporter.otlp.proto.grpc._log_exporter import OTLPLogExporter
+        from opentelemetry.exporter.otlp.proto.grpc.metric_exporter import OTLPMetricExporter
+        from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
 
         span_exporter = OTLPSpanExporter(endpoint=endpoint, insecure=True)
         metric_exporter = OTLPMetricExporter(endpoint=endpoint, insecure=True)
