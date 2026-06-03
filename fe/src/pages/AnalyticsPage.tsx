@@ -1,4 +1,3 @@
-import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import {
   Cell,
@@ -31,8 +30,6 @@ const PRIORITY_COLORS: Record<string, string> = {
 }
 
 export default function AnalyticsPage() {
-  const navigate = useNavigate()
-
   const { data, isLoading, isError } = useQuery({
     queryKey: ['analytics'],
     queryFn: getAnalyticsSummary,
