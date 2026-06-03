@@ -297,3 +297,29 @@ Claude Code (claude-sonnet-4-6) was used as the primary AI collaborator througho
 - **Prompt engineering**: Designed structured prompts using Claude's `tool_use` feature to guarantee JSON output format.
 
 All AI output was reviewed, challenged, and refined. Final architectural decisions were made by the engineer.
+
+---
+
+## 9. Prompt Versioning & AI Evaluation Strategy
+
+### Prompt Versioning
+
+Prompts live directly in source files (`app/ai/enricher.py`, `scorer.py`, `summarizer.py`) and are versioned via Git. Every prompt change is a code commit with a message explaining the reason (e.g. "add car photo context to scorer prompt"). This gives a full audit trail of what changed, when, and why — no separate prompt management tool needed at this scale.
+
+### Evaluation Strategy
+
+AI outputs are verified at three levels:
+
+**1. Shape validation (unit tests)**
+`tests/test_ai_unit.py` mocks the OpenAI client and asserts that outputs conform to expected types and ranges:
+- Scorer: `score` is an integer 0–100, `priority` is a valid `PriorityEnum` value
+- Enricher: `type`, `sentiment`, `next_action` are populated and non-empty
+- Summarizer: returns a non-empty string when notes exist; returns placeholder without calling the API when no notes exist
+
+**2. Directional correctness (behavioural tests)**
+Tests use semantically meaningful inputs to verify AI reasoning direction:
+- Positive notes (e.g. "customer agreed to price") → score > 70, priority `hot`
+- Negative notes (e.g. "not interested, stopped responding") → score < 40, priority `cold`
+
+**3. Production monitoring (Grafana Cloud)**
+Every AI call logs `input_tokens`, `output_tokens`, and the resulting `score`/`priority`/`sentiment` via `structlog`. These are shipped to Grafana Cloud (Loki + Tempo) where anomalies (e.g. unusually low scores across all leads, or AI failures spiking) are visible in real time.
