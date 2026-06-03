@@ -209,7 +209,7 @@ class TestScorer:
     @pytest.mark.asyncio
     async def test_no_notes_scores_from_car_details(self):
         """Lead with no notes is still scored (based on car details)."""
-        fake = make_tool_response({"score": 65, "priority": "warm"})
+        fake = make_tool_response({"score": 65})
         with patch.object(
             scorer_module.client.chat.completions, "create", AsyncMock(return_value=fake)
         ):
@@ -221,7 +221,7 @@ class TestScorer:
     @pytest.mark.asyncio
     async def test_positive_notes_score_high(self):
         """Lead with positive activity notes scores higher."""
-        fake = make_tool_response({"score": 88, "priority": "hot"})
+        fake = make_tool_response({"score": 88})
         with patch.object(
             scorer_module.client.chat.completions, "create", AsyncMock(return_value=fake)
         ):
@@ -243,7 +243,7 @@ class TestScorer:
     @pytest.mark.asyncio
     async def test_negative_notes_score_low(self):
         """Lead with negative notes receives a low score."""
-        fake = make_tool_response({"score": 20, "priority": "cold"})
+        fake = make_tool_response({"score": 20})
         with patch.object(
             scorer_module.client.chat.completions, "create", AsyncMock(return_value=fake)
         ):
@@ -262,7 +262,7 @@ class TestScorer:
     @pytest.mark.asyncio
     async def test_score_in_valid_range(self):
         """Score is always between 0 and 100."""
-        fake = make_tool_response({"score": 75, "priority": "warm"})
+        fake = make_tool_response({"score": 75})
         with patch.object(
             scorer_module.client.chat.completions, "create", AsyncMock(return_value=fake)
         ):
@@ -273,13 +273,30 @@ class TestScorer:
     @pytest.mark.asyncio
     async def test_priority_is_valid_enum(self):
         """Returned priority is always a valid PriorityEnum value."""
-        fake = make_tool_response({"score": 50, "priority": "warm"})
+        fake = make_tool_response({"score": 50})
         with patch.object(
             scorer_module.client.chat.completions, "create", AsyncMock(return_value=fake)
         ):
             _, priority = await score_lead(make_lead())
 
         assert priority in list(PriorityEnum)
+
+    @pytest.mark.asyncio
+    async def test_priority_thresholds(self):
+        """Priority is derived from score using fixed thresholds: >=85 hot, >=50 warm, <50 cold."""
+        cases = [
+            (85, PriorityEnum.hot),
+            (84, PriorityEnum.warm),
+            (50, PriorityEnum.warm),
+            (49, PriorityEnum.cold),
+        ]
+        for score_val, expected_priority in cases:
+            fake = make_tool_response({"score": score_val})
+            with patch.object(
+                scorer_module.client.chat.completions, "create", AsyncMock(return_value=fake)
+            ):
+                _, priority = await score_lead(make_lead())
+            assert priority == expected_priority, f"score={score_val} expected {expected_priority}"
 
 
 # ---------------------------------------------------------------------------

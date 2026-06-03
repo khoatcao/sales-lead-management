@@ -221,7 +221,7 @@ class TestLeads:
         with patch("app.ai.scorer.score_lead", new_callable=AsyncMock) as mock_score:
             from app.models.models import PriorityEnum
 
-            mock_score.return_value = (80, PriorityEnum.hot)
+            mock_score.return_value = (88, PriorityEnum.hot)
             response = await client.post(
                 "/leads",
                 json={

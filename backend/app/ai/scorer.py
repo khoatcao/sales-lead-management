@@ -67,13 +67,8 @@ async def score_lead(lead: Lead) -> tuple[int, PriorityEnum]:
                                 "maximum": 100,
                                 "description": "Lead score 0-100 (100 = highest conversion likelihood)",
                             },
-                            "priority": {
-                                "type": "string",
-                                "enum": ["hot", "warm", "cold"],
-                                "description": "Priority tier based on score",
-                            },
                         },
-                        "required": ["score", "priority"],
+                        "required": ["score"],
                     },
                 },
             }
@@ -85,12 +80,21 @@ async def score_lead(lead: Lead) -> tuple[int, PriorityEnum]:
     tool_calls = response.choices[0].message.tool_calls
     assert tool_calls is not None, "OpenAI returned no tool calls"
     tool_input = json.loads(tool_calls[0].function.arguments)  # type: ignore[union-attr]
+    score = tool_input["score"]
+
+    if score >= 85:
+        priority = PriorityEnum.hot
+    elif score >= 50:
+        priority = PriorityEnum.warm
+    else:
+        priority = PriorityEnum.cold
+
     usage = response.usage
     logger.info(
         "ai_scoring_complete",
         lead_id=lead.id,
-        score=tool_input["score"],
-        priority=tool_input["priority"],
+        score=score,
+        priority=priority,
         input_tokens=usage.prompt_tokens if usage else None,
     )
-    return tool_input["score"], PriorityEnum(tool_input["priority"])
+    return score, priority
