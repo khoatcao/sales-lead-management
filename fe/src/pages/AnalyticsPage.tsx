@@ -129,7 +129,7 @@ export default function AnalyticsPage() {
                           <Cell key={entry.name} fill={STATUS_COLORS[entry.name] || '#e5e7eb'} />
                         ))}
                       </Pie>
-                      <Tooltip formatter={(value, name) => [value, name.charAt(0).toUpperCase() + String(name).slice(1)]} />
+                      <Tooltip formatter={(value, name) => [value, String(name).charAt(0).toUpperCase() + String(name).slice(1)]} />
                       <Legend formatter={(value) => value.charAt(0).toUpperCase() + value.slice(1)} />
                     </PieChart>
                   </ResponsiveContainer>
