@@ -3,7 +3,17 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.models.models import Car, CarFeature, CarPhoto, Lead, LeadNote, RoleEnum, User
+from app.models.models import (
+    Car,
+    CarFeature,
+    CarPhoto,
+    Lead,
+    LeadNote,
+    LeadStatusEnum,
+    PriorityEnum,
+    RoleEnum,
+    User,
+)
 from app.schemas.schemas import LeadCreate, LeadUpdate
 
 logger = structlog.get_logger()
@@ -68,7 +78,12 @@ class LeadService:
         return created
 
     async def list(
-        self, page: int = 1, per_page: int = 20, current_user: User | None = None
+        self,
+        page: int = 1,
+        per_page: int = 20,
+        current_user: User | None = None,
+        status: LeadStatusEnum | None = None,
+        priority: PriorityEnum | None = None,
     ) -> tuple[list[Lead], int]:
         offset = (page - 1) * per_page
 
@@ -78,6 +93,14 @@ class LeadService:
         if current_user and current_user.role == RoleEnum.salesperson:
             query = query.where(Lead.assigned_to == current_user.id)
             count_query = count_query.where(Lead.assigned_to == current_user.id)
+
+        if status:
+            query = query.where(Lead.status == status)
+            count_query = count_query.where(Lead.status == status)
+
+        if priority:
+            query = query.where(Lead.priority == priority)
+            count_query = count_query.where(Lead.priority == priority)
 
         total = await self.db.scalar(count_query)
 

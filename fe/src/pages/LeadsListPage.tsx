@@ -7,17 +7,41 @@ import StatusBadge from '../components/StatusBadge'
 import PriorityBadge from '../components/PriorityBadge'
 import Pagination from '../components/Pagination'
 
+const STATUS_OPTIONS = [
+  { value: '', label: 'All Statuses' },
+  { value: 'new', label: 'New' },
+  { value: 'contacted', label: 'Contacted' },
+  { value: 'negotiating', label: 'Negotiating' },
+  { value: 'closed', label: 'Closed' },
+  { value: 'lost', label: 'Lost' },
+]
+
+const PRIORITY_OPTIONS = [
+  { value: '', label: 'All Priorities' },
+  { value: 'hot', label: 'Hot' },
+  { value: 'warm', label: 'Warm' },
+  { value: 'cold', label: 'Cold' },
+]
+
 export default function LeadsListPage() {
   const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
   const logout = useAuthStore((s) => s.logout)
   const queryClient = useQueryClient()
   const [page, setPage] = useState(1)
+  const [status, setStatus] = useState('')
+  const [priority, setPriority] = useState('')
 
   const { data, isLoading, isError } = useQuery({
-    queryKey: ['leads', page],
-    queryFn: () => listLeads(page, 20),
+    queryKey: ['leads', page, status, priority],
+    queryFn: () => listLeads(page, 20, status, priority),
   })
+
+  function handleFilterChange(newStatus: string, newPriority: string) {
+    setPage(1)
+    setStatus(newStatus)
+    setPriority(newPriority)
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -35,12 +59,45 @@ export default function LeadsListPage() {
       </header>
 
       <main className="max-w-6xl mx-auto px-6 py-6">
-        <div className="flex items-center justify-between mb-4">
-          <p className="text-sm text-gray-500">
-            {data
-              ? `${data.total} ${user?.role === 'salesperson' ? 'assigned to you' : 'total'} lead${data.total !== 1 ? 's' : ''}`
-              : ''}
-          </p>
+        {/* Toolbar */}
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <div className="flex items-center gap-3">
+            <select
+              value={status}
+              onChange={(e) => handleFilterChange(e.target.value, priority)}
+              className="text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              {STATUS_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>{o.label}</option>
+              ))}
+            </select>
+
+            <select
+              value={priority}
+              onChange={(e) => handleFilterChange(status, e.target.value)}
+              className="text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              {PRIORITY_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>{o.label}</option>
+              ))}
+            </select>
+
+            {(status || priority) && (
+              <button
+                onClick={() => handleFilterChange('', '')}
+                className="text-sm text-gray-400 hover:text-gray-600"
+              >
+                Clear filters
+              </button>
+            )}
+
+            <p className="text-sm text-gray-400">
+              {data
+                ? `${data.total} ${user?.role === 'salesperson' ? 'assigned to you' : 'total'} lead${data.total !== 1 ? 's' : ''}`
+                : ''}
+            </p>
+          </div>
+
           <button
             onClick={() => navigate('/leads/new')}
             className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
@@ -58,7 +115,9 @@ export default function LeadsListPage() {
         )}
 
         {data && data.items.length === 0 && (
-          <div className="text-center py-12 text-gray-400">No leads yet. Create one to get started.</div>
+          <div className="text-center py-12 text-gray-400">
+            {status || priority ? 'No leads match the selected filters.' : 'No leads yet. Create one to get started.'}
+          </div>
         )}
 
         {data && data.items.length > 0 && (

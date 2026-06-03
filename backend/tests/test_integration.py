@@ -324,6 +324,31 @@ class TestLeads:
         )
         assert response.status_code == 404
 
+    async def test_filter_by_status(self, client, auth_headers, sample_lead):
+        """Filter leads by status returns only matching leads."""
+        lead_id = sample_lead["id"]
+        await client.patch(f"/leads/{lead_id}", json={"status": "contacted"}, headers=auth_headers)
+
+        response = await client.get("/leads?status=contacted", headers=auth_headers)
+        assert response.status_code == 200
+        data = response.json()
+        assert all(item["status"] == "contacted" for item in data["items"])
+
+    async def test_filter_by_priority(self, client, auth_headers, sample_lead):
+        """Filter leads by priority returns only matching leads."""
+        response = await client.get("/leads?priority=warm", headers=auth_headers)
+        assert response.status_code == 200
+        data = response.json()
+        assert all(item["priority"] == "warm" for item in data["items"])
+
+    async def test_filter_no_matches_returns_empty(self, client, auth_headers, sample_lead):
+        """Filter with no matching leads returns empty list."""
+        response = await client.get("/leads?status=lost", headers=auth_headers)
+        assert response.status_code == 200
+        data = response.json()
+        assert data["items"] == []
+        assert data["total"] == 0
+
 
 # ---------------------------------------------------------------------------
 # Notes tests
