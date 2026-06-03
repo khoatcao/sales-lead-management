@@ -44,14 +44,27 @@ export default function LeadsListPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-        <h1 className="text-lg font-semibold text-gray-900">Sales Leads</h1>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      <header className="bg-white/80 backdrop-blur border-b border-gray-200 px-6 py-4 flex items-center justify-between sticky top-0 z-10">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+          </div>
+          <h1 className="text-lg font-semibold text-gray-900">LeadIQ</h1>
+        </div>
         <div className="flex items-center gap-4">
-          <span className="text-sm text-gray-500">{user?.name}</span>
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 bg-blue-100 rounded-full flex items-center justify-center">
+              <span className="text-xs font-semibold text-blue-700">{user?.name?.charAt(0)}</span>
+            </div>
+            <span className="text-sm text-gray-600 font-medium">{user?.name}</span>
+            <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full capitalize">{user?.role}</span>
+          </div>
           <button
             onClick={() => { queryClient.clear(); logout(); navigate('/login') }}
-            className="text-sm text-gray-500 hover:text-gray-800"
+            className="text-sm text-gray-400 hover:text-gray-700 transition-colors"
           >
             Sign out
           </button>
@@ -122,16 +135,16 @@ export default function LeadsListPage() {
 
         {data && data.items.length > 0 && (
           <>
-            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
               <table className="w-full text-sm">
-                <thead className="bg-gray-50 border-b border-gray-200">
-                  <tr>
-                    <th className="text-left px-4 py-3 font-medium text-gray-600">Seller</th>
-                    <th className="text-left px-4 py-3 font-medium text-gray-600">Car</th>
-                    <th className="text-left px-4 py-3 font-medium text-gray-600">Status</th>
-                    <th className="text-left px-4 py-3 font-medium text-gray-600">Priority</th>
-                    <th className="text-left px-4 py-3 font-medium text-gray-600">Score</th>
-                    <th className="text-left px-4 py-3 font-medium text-gray-600">Created</th>
+                <thead>
+                  <tr className="bg-gradient-to-r from-gray-50 to-slate-50 border-b border-gray-200">
+                    <th className="text-left px-5 py-3.5 font-semibold text-gray-500 uppercase tracking-wide text-xs">Seller</th>
+                    <th className="text-left px-5 py-3.5 font-semibold text-gray-500 uppercase tracking-wide text-xs">Car</th>
+                    <th className="text-left px-5 py-3.5 font-semibold text-gray-500 uppercase tracking-wide text-xs">Status</th>
+                    <th className="text-left px-5 py-3.5 font-semibold text-gray-500 uppercase tracking-wide text-xs">Priority</th>
+                    <th className="text-left px-5 py-3.5 font-semibold text-gray-500 uppercase tracking-wide text-xs">AI Score</th>
+                    <th className="text-left px-5 py-3.5 font-semibold text-gray-500 uppercase tracking-wide text-xs">Created</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
@@ -139,31 +152,39 @@ export default function LeadsListPage() {
                     <tr
                       key={lead.id}
                       onClick={() => navigate(`/leads/${lead.id}`)}
-                      className="hover:bg-gray-50 cursor-pointer transition-colors"
+                      className="hover:bg-blue-50/40 cursor-pointer transition-colors group"
                     >
-                      <td className="px-4 py-3">
-                        <p className="font-medium text-gray-900">{lead.seller_name}</p>
-                        <p className="text-xs text-gray-400">{lead.seller_email}</p>
+                      <td className="px-5 py-4">
+                        <p className="font-semibold text-gray-900 group-hover:text-blue-700 transition-colors">{lead.seller_name}</p>
+                        <p className="text-xs text-gray-400 mt-0.5">{lead.seller_email}</p>
                       </td>
-                      <td className="px-4 py-3 text-gray-700">
+                      <td className="px-5 py-4 text-gray-600">
                         {lead.car
                           ? `${lead.car.year} ${lead.car.make} ${lead.car.model}`
                           : '—'}
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-5 py-4">
                         <StatusBadge status={lead.status} />
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-5 py-4">
                         <PriorityBadge priority={lead.priority} />
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-5 py-4">
                         {lead.ai_score != null ? (
-                          <span className="font-semibold text-gray-800">{lead.ai_score}</span>
+                          <div className="flex items-center gap-2">
+                            <div className="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                              <div
+                                className={`h-full rounded-full ${lead.ai_score >= 85 ? 'bg-red-500' : lead.ai_score >= 50 ? 'bg-orange-400' : 'bg-sky-400'}`}
+                                style={{ width: `${lead.ai_score}%` }}
+                              />
+                            </div>
+                            <span className="font-semibold text-gray-800 tabular-nums">{lead.ai_score}</span>
+                          </div>
                         ) : (
-                          <span className="text-gray-400">—</span>
+                          <span className="text-gray-300">—</span>
                         )}
                       </td>
-                      <td className="px-4 py-3 text-gray-500">
+                      <td className="px-5 py-4 text-gray-400 text-xs">
                         {new Date(lead.created_at).toLocaleDateString()}
                       </td>
                     </tr>
