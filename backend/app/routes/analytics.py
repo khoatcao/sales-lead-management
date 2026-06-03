@@ -48,9 +48,7 @@ async def get_summary(
         select(
             User.name,
             func.count(Lead.id).label("total"),
-            func.sum(
-                case((Lead.status == LeadStatusEnum.closed, 1), else_=0)
-            ).label("closed"),
+            func.sum(case((Lead.status == LeadStatusEnum.closed, 1), else_=0)).label("closed"),
         )
         .join(Lead, Lead.assigned_to == User.id, isouter=True)
         .where(User.role == RoleEnum.salesperson)
