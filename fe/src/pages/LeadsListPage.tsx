@@ -54,6 +54,12 @@ export default function LeadsListPage() {
           </div>
           <h1 className="text-lg font-semibold text-gray-900">LeadIQ</h1>
         </div>
+        <nav className="flex items-center gap-6">
+          <button className="text-sm text-blue-600 font-semibold border-b-2 border-blue-600 pb-0.5">Leads</button>
+          {(user?.role === 'manager' || user?.role === 'admin') && (
+            <button onClick={() => navigate('/analytics')} className="text-sm text-gray-500 hover:text-gray-900 transition-colors">Analytics</button>
+          )}
+        </nav>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 bg-blue-100 rounded-full flex items-center justify-center">

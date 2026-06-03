@@ -9,7 +9,7 @@ from fastapi.responses import JSONResponse
 from app.config import settings
 from app.database import engine
 from app.middleware.telemetry import setup_telemetry
-from app.routes import leads, notes, users
+from app.routes import analytics, leads, notes, users
 
 logger = structlog.get_logger()
 
@@ -83,6 +83,7 @@ async def global_exception_handler(request: Request, exc: Exception):
 app.include_router(users.router)
 app.include_router(leads.router)
 app.include_router(notes.router)
+app.include_router(analytics.router)
 
 
 @app.get("/health", tags=["health"])

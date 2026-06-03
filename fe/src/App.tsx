@@ -5,6 +5,7 @@ import RegisterPage from './pages/RegisterPage'
 import LeadsListPage from './pages/LeadsListPage'
 import LeadDetailPage from './pages/LeadDetailPage'
 import CreateLeadPage from './pages/CreateLeadPage'
+import AnalyticsPage from './pages/AnalyticsPage'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const token = useAuthStore((s) => s.token)
@@ -28,6 +29,10 @@ export default function App() {
         <Route
           path="/leads/:id"
           element={<ProtectedRoute><LeadDetailPage /></ProtectedRoute>}
+        />
+        <Route
+          path="/analytics"
+          element={<ProtectedRoute><AnalyticsPage /></ProtectedRoute>}
         />
         <Route path="*" element={<Navigate to="/leads" replace />} />
       </Routes>
