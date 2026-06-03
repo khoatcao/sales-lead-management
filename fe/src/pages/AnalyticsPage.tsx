@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import {
   Cell,
   Legend,
@@ -14,7 +14,7 @@ import {
   CartesianGrid,
 } from 'recharts'
 import { getAnalyticsSummary } from '../api/analytics'
-import { useAuthStore } from '../store/authStore'
+import Layout from '../components/Layout'
 
 const STATUS_COLORS: Record<string, string> = {
   new: '#3b82f6',
@@ -32,9 +32,6 @@ const PRIORITY_COLORS: Record<string, string> = {
 
 export default function AnalyticsPage() {
   const navigate = useNavigate()
-  const user = useAuthStore((s) => s.user)
-  const logout = useAuthStore((s) => s.logout)
-  const queryClient = useQueryClient()
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ['analytics'],
@@ -46,85 +43,98 @@ export default function AnalyticsPage() {
     : []
 
   const priorityData = data
-    ? Object.entries(data.by_priority).map(([name, value]) => ({ name: name.charAt(0).toUpperCase() + name.slice(1), value, fill: PRIORITY_COLORS[name] }))
+    ? Object.entries(data.by_priority).map(([name, value]) => ({
+        name: name.charAt(0).toUpperCase() + name.slice(1),
+        value,
+        fill: PRIORITY_COLORS[name],
+      }))
     : []
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-      {/* Header */}
-      <header className="bg-white/80 backdrop-blur border-b border-gray-200 px-6 py-4 flex items-center justify-between sticky top-0 z-10">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+    <Layout>
+      {/* Top bar */}
+      <div className="bg-white border-b border-gray-200 px-8 py-5">
+        <h1 className="text-xl font-bold text-slate-900">Analytics</h1>
+        <p className="text-sm text-slate-400 mt-0.5">Pipeline overview and team performance</p>
+      </div>
+
+      <main className="flex-1 px-8 py-6">
+        {isLoading && (
+          <div className="flex items-center justify-center py-20 text-slate-400">
+            <svg className="w-5 h-5 animate-spin mr-2" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
             </svg>
+            Loading analytics...
           </div>
-          <h1 className="text-lg font-semibold text-gray-900">LeadIQ</h1>
-        </div>
-        <nav className="flex items-center gap-6">
-          <button onClick={() => navigate('/leads')} className="text-sm text-gray-500 hover:text-gray-900 transition-colors">Leads</button>
-          <button className="text-sm text-blue-600 font-semibold border-b-2 border-blue-600 pb-0.5">Analytics</button>
-        </nav>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 bg-blue-100 rounded-full flex items-center justify-center">
-              <span className="text-xs font-semibold text-blue-700">{user?.name?.charAt(0)}</span>
-            </div>
-            <span className="text-sm text-gray-600 font-medium">{user?.name}</span>
-            <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full capitalize">{user?.role}</span>
-          </div>
-          <button
-            onClick={() => { queryClient.clear(); logout(); navigate('/login') }}
-            className="text-sm text-gray-400 hover:text-gray-700 transition-colors"
-          >
-            Sign out
-          </button>
-        </div>
-      </header>
+        )}
 
-      <main className="max-w-6xl mx-auto px-6 py-8">
-        <div className="mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">Analytics</h2>
-          <p className="text-sm text-gray-500 mt-1">Pipeline overview and team performance</p>
-        </div>
-
-        {isLoading && <div className="text-center py-20 text-gray-400">Loading analytics...</div>}
-        {isError && <div className="text-center py-20 text-red-500">Failed to load analytics.</div>}
+        {isError && (
+          <div className="text-center py-20 text-red-500">Failed to load analytics.</div>
+        )}
 
         {data && (
           <>
             {/* KPI Cards */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
               <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5">
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Total Leads</p>
-                <p className="text-3xl font-bold text-gray-900">{data.total_leads}</p>
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Leads</p>
+                  <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                  </div>
+                </div>
+                <p className="text-4xl font-black text-slate-900">{data.total_leads}</p>
               </div>
+
               <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5">
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Hot Leads</p>
-                <p className="text-3xl font-bold text-red-500">{data.hot_leads}</p>
-                <p className="text-xs text-gray-400 mt-1">Score ≥ 85</p>
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Hot Leads</p>
+                  <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">
+                    <span className="text-sm">🔥</span>
+                  </div>
+                </div>
+                <p className="text-4xl font-black text-red-500">{data.hot_leads}</p>
+                <p className="text-xs text-slate-400 mt-1">Score ≥ 85</p>
               </div>
+
               <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5">
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Avg AI Score</p>
-                <p className="text-3xl font-bold text-blue-600">{data.avg_score}</p>
-                <p className="text-xs text-gray-400 mt-1">Out of 100</p>
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Avg Score</p>
+                  <div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center">
+                    <svg className="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                  </div>
+                </div>
+                <p className="text-4xl font-black text-indigo-600">{data.avg_score}</p>
+                <p className="text-xs text-slate-400 mt-1">Out of 100</p>
               </div>
+
               <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5">
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Conversion Rate</p>
-                <p className="text-3xl font-bold text-green-600">{data.conversion_rate}%</p>
-                <p className="text-xs text-gray-400 mt-1">Closed / Total</p>
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Conversion</p>
+                  <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                    <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                </div>
+                <p className="text-4xl font-black text-green-600">{data.conversion_rate}%</p>
+                <p className="text-xs text-slate-400 mt-1">Closed / Total</p>
               </div>
             </div>
 
             {/* Charts */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-              {/* Status donut */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
               <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
-                <h3 className="text-sm font-semibold text-gray-700 mb-4">Leads by Status</h3>
+                <h3 className="text-sm font-semibold text-slate-700 mb-5">Leads by Status</h3>
                 {statusData.length > 0 ? (
                   <ResponsiveContainer width="100%" height={260}>
                     <PieChart>
-                      <Pie data={statusData} cx="50%" cy="50%" innerRadius={70} outerRadius={100} paddingAngle={3} dataKey="value">
+                      <Pie data={statusData} cx="50%" cy="50%" innerRadius={75} outerRadius={105} paddingAngle={3} dataKey="value">
                         {statusData.map((entry) => (
                           <Cell key={entry.name} fill={STATUS_COLORS[entry.name] || '#e5e7eb'} />
                         ))}
@@ -134,21 +144,20 @@ export default function AnalyticsPage() {
                     </PieChart>
                   </ResponsiveContainer>
                 ) : (
-                  <div className="flex items-center justify-center h-64 text-gray-300 text-sm">No data</div>
+                  <div className="flex items-center justify-center h-64 text-slate-300 text-sm">No data yet</div>
                 )}
               </div>
 
-              {/* Priority bar */}
               <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
-                <h3 className="text-sm font-semibold text-gray-700 mb-4">Leads by Priority</h3>
+                <h3 className="text-sm font-semibold text-slate-700 mb-5">Leads by Priority</h3>
                 {priorityData.length > 0 ? (
                   <ResponsiveContainer width="100%" height={260}>
-                    <BarChart data={priorityData} barSize={48}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-                      <XAxis dataKey="name" tick={{ fontSize: 13 }} axisLine={false} tickLine={false} />
-                      <YAxis tick={{ fontSize: 12 }} axisLine={false} tickLine={false} />
-                      <Tooltip cursor={{ fill: '#f9fafb' }} />
-                      <Bar dataKey="value" radius={[6, 6, 0, 0]}>
+                    <BarChart data={priorityData} barSize={52}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                      <XAxis dataKey="name" tick={{ fontSize: 13, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fontSize: 12, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+                      <Tooltip cursor={{ fill: '#f8fafc' }} />
+                      <Bar dataKey="value" radius={[8, 8, 0, 0]}>
                         {priorityData.map((entry) => (
                           <Cell key={entry.name} fill={entry.fill} />
                         ))}
@@ -156,51 +165,53 @@ export default function AnalyticsPage() {
                     </BarChart>
                   </ResponsiveContainer>
                 ) : (
-                  <div className="flex items-center justify-center h-64 text-gray-300 text-sm">No data</div>
+                  <div className="flex items-center justify-center h-64 text-slate-300 text-sm">No data yet</div>
                 )}
               </div>
             </div>
 
-            {/* Salesperson Leaderboard */}
-            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
-              <h3 className="text-sm font-semibold text-gray-700 mb-4">Salesperson Performance</h3>
+            {/* Leaderboard */}
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm">
+              <div className="px-6 py-5 border-b border-gray-100">
+                <h3 className="text-sm font-semibold text-slate-700">Salesperson Performance</h3>
+              </div>
+
               {data.leaderboard.length === 0 ? (
-                <p className="text-sm text-gray-400 py-4 text-center">No salespeople found.</p>
+                <p className="text-sm text-slate-400 py-8 text-center">No salespeople found.</p>
               ) : (
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-gray-100">
-                      <th className="text-left py-2 px-3 text-xs font-semibold text-gray-400 uppercase tracking-wide">Salesperson</th>
-                      <th className="text-center py-2 px-3 text-xs font-semibold text-gray-400 uppercase tracking-wide">Assigned</th>
-                      <th className="text-center py-2 px-3 text-xs font-semibold text-gray-400 uppercase tracking-wide">Closed</th>
-                      <th className="text-left py-2 px-3 text-xs font-semibold text-gray-400 uppercase tracking-wide">Conversion</th>
+                    <tr className="border-b border-gray-50">
+                      <th className="text-left px-6 py-3.5 text-xs font-semibold text-slate-400 uppercase tracking-wider">Salesperson</th>
+                      <th className="text-center px-6 py-3.5 text-xs font-semibold text-slate-400 uppercase tracking-wider">Assigned</th>
+                      <th className="text-center px-6 py-3.5 text-xs font-semibold text-slate-400 uppercase tracking-wider">Closed</th>
+                      <th className="text-left px-6 py-3.5 text-xs font-semibold text-slate-400 uppercase tracking-wider">Conversion Rate</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50">
                     {data.leaderboard.map((sp, i) => (
-                      <tr key={sp.name} className="hover:bg-gray-50 transition-colors">
-                        <td className="py-3 px-3">
+                      <tr key={sp.name} className="hover:bg-slate-50 transition-colors">
+                        <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                            <div className="w-9 h-9 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
                               {sp.name.charAt(0)}
                             </div>
                             <div>
-                              <p className="font-semibold text-gray-900">{sp.name}</p>
-                              {i === 0 && sp.total > 0 && <p className="text-xs text-amber-500 font-medium">Top performer</p>}
+                              <p className="font-semibold text-slate-900">{sp.name}</p>
+                              {i === 0 && sp.total > 0 && (
+                                <span className="text-xs text-amber-600 font-semibold bg-amber-50 px-1.5 py-0.5 rounded">Top performer</span>
+                              )}
                             </div>
                           </div>
                         </td>
-                        <td className="py-3 px-3 text-center font-semibold text-gray-700">{sp.total}</td>
-                        <td className="py-3 px-3 text-center font-semibold text-green-600">{sp.closed}</td>
-                        <td className="py-3 px-3">
-                          <div className="flex items-center gap-2">
-                            <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                              <div
-                                className="h-full bg-green-500 rounded-full"
-                                style={{ width: `${sp.conversion_rate}%` }}
-                              />
+                        <td className="px-6 py-4 text-center font-bold text-slate-700 text-base">{sp.total}</td>
+                        <td className="px-6 py-4 text-center font-bold text-green-600 text-base">{sp.closed}</td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                              <div className="h-full bg-green-500 rounded-full" style={{ width: `${sp.conversion_rate}%` }} />
                             </div>
-                            <span className="text-xs font-semibold text-gray-600 w-10 text-right">{sp.conversion_rate}%</span>
+                            <span className="text-sm font-bold text-slate-600 w-12 text-right">{sp.conversion_rate}%</span>
                           </div>
                         </td>
                       </tr>
@@ -212,6 +223,6 @@ export default function AnalyticsPage() {
           </>
         )}
       </main>
-    </div>
+    </Layout>
   )
 }
